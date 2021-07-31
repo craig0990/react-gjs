@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "strict": true,
+    "target": "ES2018",
+    "moduleResolution": "node",
+    "strict": true,
+    "noImplicitAny": true,
+    "noPropertyAccessFromIndexSignature": true,
+    "composite": true,
+    "typeRoots": ["../../node_modules/@types", "../../node_modules/@gi-types"],
+    "types": ["gjs-environment", "base-types", "gtk4-types"],
+    "lib": ["ES2019"],
+    "allowSyntheticDefaultImports": true,
+    "outDir": "./lib"
+  },
+  "include": ["./src/**/*.ts"]
+}

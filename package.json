@@ -1,0 +1,26 @@
+{
+  "name": "react-gjs",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "workspaces": [
+    "packages/*"
+  ],
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@gi-types/base-types": "^1.0.0",
+    "@gi-types/gjs-environment": "^1.0.0",
+    "@gi-types/gtk4-types": "^1.0.0",
+    "@typescript-eslint/eslint-plugin": "^4.28.4",
+    "@typescript-eslint/parser": "^4.28.4",
+    "eslint": "^7.31.0",
+    "prettier-plugin-jsdoc": "^0.3.23",
+    "typedoc": "^0.21.4",
+    "typescript": "^4.3.5"
+  }
+}

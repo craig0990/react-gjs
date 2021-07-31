@@ -1,0 +1,13 @@
+{
+  "trailingComma": "all",
+  "tabWidth": 2,
+  "semi": false,
+  "singleQuote": true,
+  "arrowParens": "avoid",
+  "proseWrap": "always",
+  "jsdocSingleLineComment": false,
+  "jsdocVerticalAlignment": true,
+  "jsdocSeparateReturnsFromParam": true,
+  "jsdocKeepUnParseAbleExampleIndent": true,
+  "plugins": ["prettier-plugin-jsdoc"]
+}
