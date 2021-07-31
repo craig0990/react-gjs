@@ -1,15 +1,19 @@
 /**
  * Provides the core React renderer logic and provides several implementations
  *
- * * {@link Reconciler} - the bare minimum
+ * - {@link Reconciler} - the bare minimum
  *
  * @module
  */
 
-import Gtk from 'gi://Gtk?version=4.0';
-import Gio from 'gi://Gio';
+import Gtk from 'gi://Gtk?version=4.0'
+import Gio from 'gi://Gio'
 
-import Reconciler from './reconciler';
+import Reconciler from 'react-reconciler'
+
+import type from 'react'
+
+import BaseReconciler from './reconciler/base'
 
 Gtk.init()
 
@@ -27,7 +31,6 @@ application.connect('activate', (app: Gtk.Application) => {
     activeWindow = new Gtk.ApplicationWindow({
       application: app,
     })
-
   }
 
   activeWindow.present()
@@ -35,6 +38,17 @@ application.connect('activate', (app: Gtk.Application) => {
 
 application.run(null)
 
-export default application
+const Renderer = Reconciler(BaseReconciler)
 
-export { Reconciler }
+/**
+ * Render function using BasicReconciler by default
+ */
+export default (
+  element: JSX.Element,
+  container: Gtk.Widget,
+  options = {},
+): void => {
+  // @TODO
+}
+
+export { BaseReconciler }

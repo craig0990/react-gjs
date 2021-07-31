@@ -1,6 +1,8 @@
 {
-    "compilerOptions": {
-        "composite": true
-    },
-    "files": ["./src/index.ts"]
+  "compilerOptions": {
+    "composite": true,
+    "types": [],
+    "outDir": "./lib"
+  },
+  "files": ["./src/index.ts"]
 }
