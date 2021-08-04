@@ -1,4 +1,4 @@
 *.tsbuildinfo
 docs/
 node_modules/
-packages/*/lib
+packages/*/dist

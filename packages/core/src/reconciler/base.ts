@@ -13,9 +13,10 @@ type Props = Record<string, unknown>
  *
  * @returns {string}       The capitalized value
  */
-function capitalize<T extends string>(value: T): Capitalize<T> {
-  return (value.charAt(0) + value.slice(1)) as Capitalize<T>
-}
+const capitalize = <T extends string>(value: T): Capitalize<T> =>
+  `${value[0]}${value.slice(1)}` as Capitalize<T>
+
+const builder = new Gtk.Builder()
 
 const reconciler: HostConfig<
   LowerWidgetKeys,
@@ -45,16 +46,18 @@ const reconciler: HostConfig<
    *
    * @param type A `camelCased` widget name
    */
-  createInstance(type: LowerWidgetKeys, props: Props = {}): Gtk.Widget {
+  createInstance(type: LowerWidgetKeys, allProps: Props = {}): Gtk.Widget {
     const widgetName = capitalize(type)
+
+    const { children, ...props } = allProps
 
     if (!Gtk[widgetName]) {
       throw new TypeError(`Invalid widget: ${widgetName}`)
     }
 
-    const widget = Gtk[widgetName]
+    const WidgetClass = Gtk[widgetName]
 
-    return new widget(props)
+    return new WidgetClass(props)
   },
 
   createTextInstance() {
@@ -67,7 +70,7 @@ const reconciler: HostConfig<
    * Adds a child to a parent instance
    */
   appendInitialChild(parentInstance, child) {
-    // @TODO
+    parentInstance.vfunc_add_child(builder, child, null)
   },
 
   /**
@@ -135,6 +138,33 @@ const reconciler: HostConfig<
   },
 
   noTimeout: -1,
+
+  /* Mutation methods */
+
+  /**
+   * Appends a child to the parent instance
+   *
+   * @todo I am having trouble being type safe on the `remove()` call, but also
+   *   unsure how to "enforce" the idea that only a `Gtk.Box` etc. should have
+   *   children. A `Gtk.Label` should not have children (even though it does
+   *   actually seem to execute)
+   */
+  appendChild(parentInstance, child) {
+    const parent = child.get_parent()
+
+    // Check if child is already attached - presumably React is re-ordering the children
+    if (parent != null) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      if (typeof (parent as any).remove !== 'function') {
+        throw new TypeError('Cannot remove child from parent')
+      }
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ;(parent as any).remove(child)
+    }
+
+    parentInstance.vfunc_add_child(builder, child, null)
+  },
 }
 
 // reconciler.createInstance('label')

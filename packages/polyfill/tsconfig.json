@@ -2,7 +2,7 @@
   "compilerOptions": {
     "composite": true,
     "types": [],
-    "outDir": "./lib"
+    "outDir": "./dist"
   },
   "files": ["./src/index.ts"]
 }
