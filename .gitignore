@@ -1,4 +1,5 @@
 *.tsbuildinfo
+.rollup.cache
+dist
 docs/
 node_modules/
-packages/*/dist
