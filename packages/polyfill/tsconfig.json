@@ -2,6 +2,7 @@
   "compilerOptions": {
     "composite": true,
     "types": [],
+    "target": "ES2019",
     "outDir": "./dist"
   },
   "files": ["./src/index.ts"]

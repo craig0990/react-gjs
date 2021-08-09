@@ -14,14 +14,14 @@ type Props = Record<string, unknown>
  * @returns {string}       The capitalized value
  */
 const capitalize = <T extends string>(value: T): Capitalize<T> =>
-  `${value[0]}${value.slice(1)}` as Capitalize<T>
+  `${value[0].toUpperCase()}${value.slice(1)}` as Capitalize<T>
 
 const builder = new Gtk.Builder()
 
-const reconciler: HostConfig<
+const config: HostConfig<
   LowerWidgetKeys,
   Props,
-  Gtk.Buildable,
+  Gtk.Window,
   Gtk.Widget,
   never,
   never,
@@ -165,8 +165,14 @@ const reconciler: HostConfig<
 
     parentInstance.vfunc_add_child(builder, child, null)
   },
+
+  clearContainer(container) {
+    container.set_child(null)
+  },
+
+  appendChildToContainer(container, child) {
+    container.set_child(child)
+  },
 }
 
-// reconciler.createInstance('label')
-
-export default reconciler
+export default config

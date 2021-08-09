@@ -12,7 +12,7 @@
   ],
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "devDependencies": {
     "@gi-types/base-types": "^1.0.0",
     "@gi-types/gjs-environment": "^1.0.0",

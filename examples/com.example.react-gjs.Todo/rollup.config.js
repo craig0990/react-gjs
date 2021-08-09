@@ -5,8 +5,11 @@ import nodePolyfills from 'rollup-plugin-polyfill-node'
 import { babel } from '@rollup/plugin-babel'
 import typescript from '@rollup/plugin-typescript'
 
+// const NODE_ENV = 'production';
+const NODE_ENV = 'dev'
+
 export default {
-  input: 'index.ts',
+  input: 'index.tsx',
   external: id => /^gi:\/\//.test(id),
   output: {
     dir: 'dist',
@@ -21,7 +24,7 @@ export default {
   // },
   plugins: [
     replace({
-      values: { 'process.env.NODE_ENV': JSON.stringify('production') },
+      values: { 'process.env.NODE_ENV': JSON.stringify(NODE_ENV) },
       preventAssignment: true,
     }),
     nodePolyfills(),

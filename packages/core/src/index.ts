@@ -1,3 +1,5 @@
+import Gtk from 'gi://Gtk?version=4.0'
+
 /**
  * Provides the core React renderer logic and provides several implementations
  *
@@ -8,19 +10,23 @@
 
 import Reconciler from 'react-reconciler'
 
-import BaseReconciler from './reconciler/base'
-
-const Renderer = Reconciler(BaseReconciler)
+import CoreReconciler from './reconciler/core'
+import RenderlessChildrenReconciler from './reconciler/renderless-children'
 
 /**
  * Render function using BasicReconciler by default
  */
 const render = (
   element: JSX.Element,
-  container: Gtk.Widget,
-  options = {},
+  container: Gtk.Window,
+  options = {
+    reconciler: CoreReconciler,
+  },
 ): void => {
-  // @TODO
+  const renderer = Reconciler(options.reconciler)
+  const root = renderer.createContainer(container, 0, false, null)
+
+  renderer.updateContainer(element, root)
 }
 
-export { render, BaseReconciler }
+export { render, CoreReconciler, RenderlessChildrenReconciler }

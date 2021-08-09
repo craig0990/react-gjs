@@ -6,6 +6,14 @@
  * @module
  */
 
-const setTimeout = () => {}
+const setTimeout = (): void => {
+  // @TODO
+}
+
+const polyfill = (target): void => {
+  target.setTimeout = setTimeout
+}
+
+export default polyfill
 
 export { setTimeout }
