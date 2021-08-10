@@ -2,7 +2,7 @@ import polyfill from '@react-gjs/polyfill'
 import Gtk from 'gi://Gtk?version=4.0'
 import Gio from 'gi://Gio'
 import { render, RenderlessChildrenReconciler } from '@react-gjs/core'
-import React from 'react'
+import React, { useState } from 'react'
 
 polyfill(globalThis)
 
@@ -45,17 +45,46 @@ application.connect('activate', (app: Gtk.Application) => {
   })
 })
 
-const onClick = () => print('I was clicked')
+class App extends React.Component<Record<string, never>, { count: number, visible: boolean }> {
 
-function App() {
-  return (
-    <box orientation={Gtk.Orientation.VERTICAL}>
-      <label label="Hello, world!" halign={Gtk.Align.CENTER} />
-      <button label="Click me">
-        <signal name="clicked" handler={onClick} />
-      </button>
-    </box>
-  )
+    constructor(props: any) {
+        super(props)
+        this.state = { count: 0, visible: true }
+        // this.onClick = this.onClick.bind(this)
+    }
+
+    onClick() {
+        print('Clicked')
+        const { count, visible } = this.state
+        this.setState({ count: count + 1, visible: !visible })
+    }
+
+    render() {
+        const { count, visible } = this.state
+        return <box orientation={Gtk.Orientation.VERTICAL}>
+            <label label={`Clicked: ${count} times`} halign={Gtk.Align.CENTER} />
+            <button label="Click me">
+                <signal name="clicked" handler={this.onClick.bind(this)} />
+            </button>
+            {visible && (
+            <box>
+                <grid hexpand={true} column-homogeneous={true}>
+                    <label label="0,0">
+                        <layout column="0" row="0" />
+                    </label>
+                    <label label="1,0">
+                        <layout column="1" row="0" />
+                    </label>
+                    <label label="0,1">
+                        <layout column="0" row="1" />
+                    </label>
+                    <label label="1,1">
+                        <layout column="1" row="1" />
+                    </label>
+                </grid>
+            </box>)}
+        </box>
+    }
 }
 
 application.run(null)

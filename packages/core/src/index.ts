@@ -11,7 +11,7 @@ import Gtk from 'gi://Gtk?version=4.0'
 import Reconciler from 'react-reconciler'
 
 import CoreReconciler from './reconciler/core'
-import RenderlessChildrenReconciler from './reconciler/renderless-children'
+import RenderlessChildrenReconciler from './reconciler/renderless'
 
 /**
  * Render function using BasicReconciler by default
@@ -19,7 +19,8 @@ import RenderlessChildrenReconciler from './reconciler/renderless-children'
 const render = (
   element: JSX.Element,
   container: Gtk.Window,
-  options = {
+  // @TODO
+  options: { reconciler: any } = {
     reconciler: CoreReconciler,
   },
 ): void => {

@@ -18,8 +18,22 @@ const capitalize = <T extends string>(value: T): Capitalize<T> =>
 
 const builder = new Gtk.Builder()
 
+// Type,
+// Props,
+// Container,
+// Instance,
+// TextInstance,
+// SuspenseInstance,
+// HydratableInstance,
+// PublicInstance,
+// HostContext,
+// UpdatePayload,
+// ChildSet,
+// TimeoutHandle,
+// NoTimeout
+
 const config: HostConfig<
-  LowerWidgetKeys,
+  LowerWidgetKeys, // type
   Props,
   Gtk.Window,
   Gtk.Widget,
@@ -28,7 +42,7 @@ const config: HostConfig<
   never,
   Gtk.Widget,
   null,
-  never,
+  Record<string, unknown>,
   never,
   number,
   number
@@ -84,6 +98,10 @@ const config: HostConfig<
     return false
   },
 
+  /**
+   * @todo Credit
+   *   https://github.com/RaynalHugo/react-cesium-fiber/blob/729f087ca19b35ced980c14cdfb1dae3e95661a6/src/reconciler/prepare-update.ts
+   */
   prepareUpdate(
     instance,
     type,
@@ -92,7 +110,48 @@ const config: HostConfig<
     rootContainer,
     hostContext,
   ) {
-    return null
+    const oldKeys = Object.keys(oldProps)
+    const newKeys = Object.keys(newProps)
+
+    // const { children, ...oldChildless } = oldProps
+    // const { children: newChildren, ...newChildless } = newProps
+
+    // print('-------- ' + type)
+    // print(JSON.stringify(oldChildless))
+    // print(JSON.stringify(newChildless))
+
+    /**
+     * Nullify all the old keys first, so we can reset them later with null
+     * values if they have become unset
+     */
+    const nulled = oldKeys
+      .filter(key => key !== 'children')
+      .reduce((out, key) => {
+        return {
+          ...out,
+          [key]: null,
+        }
+      }, {})
+
+    const diff = newKeys
+      .filter(key => key !== 'children')
+      // Ignore props that have the same identity between updates
+      .filter(key => oldProps[key] !== newProps[key])
+      .reduce((out, key) => {
+        return {
+          ...out,
+          [key]: newProps[key],
+        }
+      }, {})
+
+    if (Object.keys(diff).length === 0) {
+      return null
+    }
+
+    print('Calculated diff for ' + type)
+    print(JSON.stringify(diff))
+
+    return { ...nulled, ...diff }
   },
 
   shouldSetTextContent(type, props) {
@@ -172,6 +231,15 @@ const config: HostConfig<
 
   appendChildToContainer(container, child) {
     container.set_child(child)
+  },
+
+  removeChild(parentInstance, child) {
+    // @TODO
+    ;(parentInstance as any).remove(child)
+  },
+
+  commitUpdate(instance, updatePayload) {
+    Object.assign(instance, updatePayload)
   },
 }
 
