@@ -1,10 +1,12 @@
 import Gtk from 'gi://Gtk?version=4.0'
+import type { HostConfig, OpaqueHandle } from 'react-reconciler'
 
 import Core from './core'
 
-import Symbols from './symbols'
-
-import type { HostConfig, OpaqueHandle } from 'react-reconciler'
+import Renderless from './renderless/base'
+import Signal from './renderless/signal'
+import LayoutChild from './renderless/layoutchild'
+import EventController from './renderless/eventcontroller'
 
 import type { LowerWidgetKeys } from '../lib/types'
 
@@ -20,100 +22,52 @@ type Props = Record<string, unknown>
 const capitalize = <T extends string>(value: T): Capitalize<T> =>
   `${value[0].toUpperCase()}${value.slice(1)}` as Capitalize<T>
 
-const builder = new Gtk.Builder()
+/**
+ * Generated list - see the `@react-gjs/generator` package
+ */
+const eventControllers = [
+  'DropControllerMotion',
+  'DropTarget',
+  'DropTargetAsync',
+  'EventControllerFocus',
+  'EventControllerKey',
+  'EventControllerLegacy',
+  'EventControllerMotion',
+  'EventControllerScroll',
+  'GestureRotate',
+  'DragSource',
+  'GestureClick',
+  'GesturePan',
+  'GestureDrag',
+  'GestureLongPress',
+  'GestureStylus',
+  'GestureSwipe',
+  'GestureSingle',
+  'GestureZoom',
+  'Gesture',
+  'PadController',
+  'ShortcutController',
+]
 
-class Renderless {
-  static factory = (type: string, props: Props) => {
-    switch (type) {
-      case 'signal':
-        return new Signal(props)
-        break
-      case 'layout':
-        return new LayoutChild(props)
-        break
-      default:
-        throw new Error(`Unhandled child type ${type}`)
-        break
-    }
-  }
+const factory = (type: string, props: Props) => {
+  switch (type) {
+    case 'signal':
+      return new Signal(props)
+      break
+    case 'layout':
+      return new LayoutChild(props)
+      break
+    default:
+      if (eventControllers.includes(type)) {
+        const widgetName = capitalize(type as LowerWidgetKeys)
+        const controller = new Gtk[widgetName]()
+        return new EventController({
+          controller,
+        })
+      }
 
-  type: symbol
-
-  constructor(type: symbol) {
-    this.type = type
-  }
-
-  appendTo(parentInstance: Gtk.Widget) {
-    throw new Error('Not implemented')
-  }
-
-  commitMount() {
-    // no-op
-  }
-}
-
-class Signal extends Renderless {
-  props: Props
-
-  handlerId: number | null
-
-  constructor(props: { [key: string]: any }) {
-    super(Symbols.SIGNAL)
-    this.props = props
-    this.handlerId = null
-  }
-
-  appendTo(parentInstance: Gtk.Widget) {
-    if (!this.handlerId) {
-      this.handlerId = parentInstance.connect(
-        this.props['name'] as string,
-        this.props['handler'] as (...args: any[]) => any,
-      )
-    }
-
-    // Already connected?
-  }
-
-  removeFrom(parentInstance: Gtk.Widget) {
-    if (this.handlerId) {
-      parentInstance.disconnect(this.handlerId)
-    }
-
-    // Not yet connected?
-  }
-}
-
-class LayoutChild extends Renderless {
-  props: Props
-
-  parent: Gtk.Widget | null
-
-  constructor(props: { [key: string]: any }) {
-    super(Symbols.LAYOUT)
-    this.props = props
-    this.parent = null
-  }
-
-  appendTo(parentInstance: Gtk.Widget) {
-    this.parent = parentInstance
-  }
-
-  removeFrom(parentInstance: Gtk.Widget) {
-    // @TODO
-  }
-
-  commitMount() {
-    if (!this.parent) {
-      return
-    }
-    const parent = this.parent.get_parent()
-    print('append')
-    print(this.parent.constructor.name)
-    if (parent) {
-      print('parent')
-      const layoutChild = parent.layoutManager.get_layout_child(this.parent)
-      Object.assign(layoutChild, this.props)
-    }
+      throw new Error(`Unhandled child type ${type}`)
+      break
   }
 }
 
@@ -121,7 +75,8 @@ class LayoutChild extends Renderless {
  * @todo This feels unnecessarily verbose
  */
 const isNormalType = (type: string): type is LowerWidgetKeys => {
-  return !Symbols[type.toUpperCase() as keyof typeof Symbols & string]
+  // @TODO hard-coded whitelist
+  return !['signal', 'layout'].includes(type)
 }
 
 /**
@@ -171,7 +126,7 @@ const config: HostConfig<
       )
     }
 
-    return Renderless.factory(type, allProps)
+    return factory(type, allProps)
   },
 
   appendInitialChild(

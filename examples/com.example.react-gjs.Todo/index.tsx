@@ -1,6 +1,7 @@
 import polyfill from '@react-gjs/polyfill'
 import Gtk from 'gi://Gtk?version=4.0'
 import Gio from 'gi://Gio'
+import Gdk from 'gi://Gdk'
 import { render, RenderlessChildrenReconciler } from '@react-gjs/core'
 import React, { useState } from 'react'
 
@@ -21,6 +22,8 @@ declare module 'react' {
     }
   }
 }
+
+const { BUTTON_PRIMARY, BUTTON_MIDDLE, BUTTON_SECONDARY } = Gdk
 
 /**
  * Main application
@@ -59,10 +62,35 @@ class App extends React.Component<Record<string, never>, { count: number, visibl
         this.setState({ count: count + 1, visible: !visible })
     }
 
+    cellClick(event: Gtk.GestureSingle) {
+        print('CELL CLICKED: ' + event.constructor.name)
+        const button = event.get_current_button()
+
+        switch (button) {
+            case BUTTON_PRIMARY:
+                print('Primary click')
+            break;
+            case BUTTON_MIDDLE:
+                print('Middle click')
+            break;
+            case BUTTON_SECONDARY:
+                print('Secondary click')
+            break;
+            default:
+                print('Unknown button: ' + (button).toString())
+            break;
+        }
+
+    }
+
     render() {
         const { count, visible } = this.state
         return <box orientation={Gtk.Orientation.VERTICAL}>
-            <label label={`Clicked: ${count} times`} halign={Gtk.Align.CENTER} />
+            <label label={`Clicked: ${count} times`} halign={Gtk.Align.CENTER}>
+                <gestureSingle button={0}>
+                    <signal name="end" handler={this.cellClick.bind(this)} />
+                </gestureSingle>
+            </label>
             <button label="Click me">
                 <signal name="clicked" handler={this.onClick.bind(this)} />
             </button>

@@ -1,0 +1,62 @@
+#!/usr/bin/env node
+
+const fs = require('fs')
+const xml2js = require('xml2js')
+const set = require('lodash.set')
+
+const content = fs.readFileSync('/usr/share/gir-1.0/Gtk-4.0.gir', 'utf8')
+
+const hierarchy = {}
+
+const findChildren = (
+  classes,
+  hierarchy,
+  parent = 'GObject.Object',
+  path = '',
+) => {
+  const children = classes.filter(klass => klass['$'].parent === parent)
+
+  set(
+    hierarchy,
+    path + parent,
+    children.reduce(
+      (children, klass) => ({
+        ...children,
+        [klass['$'].name]: {},
+      }),
+      {},
+    ),
+  )
+
+  if (children.length) {
+    children.forEach(klass => {
+      findChildren(classes, hierarchy, klass['$'].name, path + parent + '.')
+    })
+  }
+}
+
+const walk = (obj, cb) => {
+  for (const key in obj) {
+    if (typeof obj[key] === 'object') {
+      walk(obj[key], cb)
+    }
+
+    cb(key)
+  }
+}
+
+xml2js.parseString(content, (err, result) => {
+  const classes = result.repository.namespace[0].class
+  // console.log(classes)
+
+  findChildren(classes, hierarchy)
+
+  console.log(hierarchy.GObject.Object)
+
+  const controllers = []
+  walk(hierarchy.GObject.Object.EventController, name => {
+    controllers.push(name)
+  })
+
+  console.log(controllers)
+})
