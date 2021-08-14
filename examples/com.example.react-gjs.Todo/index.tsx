@@ -48,12 +48,37 @@ application.connect('activate', (app: Gtk.Application) => {
   })
 })
 
-class App extends React.Component<Record<string, never>, { count: number, visible: boolean }> {
+class App extends React.Component<Record<string, never>, { count: number, visible: boolean, stack: Gtk.Stack | null }> {
+
+    stackRef = React.createRef<Gtk.Stack>()
+
+    stackPage1Ref = React.createRef<Gtk.Box>()
+
+    stackPage2Ref = React.createRef<Gtk.Box>()
 
     constructor(props: any) {
         super(props)
-        this.state = { count: 0, visible: true }
-        // this.onClick = this.onClick.bind(this)
+        this.state = { count: 0, visible: true, stack: null }
+    }
+
+    componentDidMount() {
+        print('mounted')
+        if (!this.stackRef.current) {
+            return
+        }
+
+        print('set mount state')
+        this.setState({
+            stack: this.stackRef.current
+        })
+
+        if (this.stackPage1Ref.current) {
+            this.stackRef.current.get_page(this.stackPage1Ref.current).title = 'Page 1';
+        }
+
+        if (this.stackPage2Ref.current) {
+            this.stackRef.current.get_page(this.stackPage2Ref.current).title = 'Page 2';
+        }
     }
 
     onClick() {
@@ -84,33 +109,41 @@ class App extends React.Component<Record<string, never>, { count: number, visibl
     }
 
     render() {
-        const { count, visible } = this.state
+        const { count, visible, stack } = this.state
         return <box orientation={Gtk.Orientation.VERTICAL}>
-            <label label={`Clicked: ${count} times`} halign={Gtk.Align.CENTER}>
-                <gestureSingle button={0}>
-                    <signal name="end" handler={this.cellClick.bind(this)} />
-                </gestureSingle>
-            </label>
-            <button label="Click me">
-                <signal name="clicked" handler={this.onClick.bind(this)} />
-            </button>
-            {visible && (
-            <box>
-                <grid hexpand={true} column-homogeneous={true}>
-                    <label label="0,0">
-                        <layout column="0" row="0" />
+            <stackSwitcher stack={stack} />
+            <stack ref={this.stackRef}>
+                <box orientation={Gtk.Orientation.VERTICAL} ref={this.stackPage1Ref}>
+                    <label label={`Clicked: ${count} times`} halign={Gtk.Align.CENTER}>
+                        <gestureSingle button={0}>
+                            <signal name="end" handler={this.cellClick.bind(this)} />
+                        </gestureSingle>
                     </label>
-                    <label label="1,0">
-                        <layout column="1" row="0" />
-                    </label>
-                    <label label="0,1">
-                        <layout column="0" row="1" />
-                    </label>
-                    <label label="1,1">
-                        <layout column="1" row="1" />
-                    </label>
-                </grid>
-            </box>)}
+                    <button label="Click me">
+                        <signal name="clicked" handler={this.onClick.bind(this)} />
+                    </button>
+                    {visible && (
+                        <box>
+                            <grid hexpand={true} column-homogeneous={true}>
+                                <label label="0,0">
+                                    <layout column="0" row="0" />
+                                </label>
+                                <label label="1,0">
+                                    <layout column="1" row="0" />
+                                </label>
+                                <label label="0,1">
+                                    <layout column="0" row="1" />
+                                </label>
+                                <label label="1,1">
+                                    <layout column="1" row="1" />
+                                </label>
+                            </grid>
+                        </box>)}
+                </box>
+                <box ref={this.stackPage2Ref}>
+                    <label label="Page 2" />
+                </box>
+            </stack>
         </box>
     }
 }
