@@ -14,5 +14,5 @@
     "outDir": "./dist",
     "jsx": "react"
   },
-  "include": ["index.tsx", "./src/**/*.ts"]
+  "include": ["*.tsx", "./src/**/*.tsx"]
 }

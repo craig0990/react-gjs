@@ -22,34 +22,43 @@ const capitalize = <T extends string>(value: T): Capitalize<T> =>
 
 const builder = new Gtk.Builder()
 
-// Type,
-// Props,
-// Container,
-// Instance,
-// TextInstance,
-// SuspenseInstance,
-// HydratableInstance,
-// PublicInstance,
-// HostContext,
-// UpdatePayload,
-// ChildSet,
-// TimeoutHandle,
-// NoTimeout
+const GTK_NAMESPACE = 'gtk:'
+const GTK_NAMESPACE_LAYOUT = 'gtk:layout'
+const GTK_NAMESPACE_CONNECT_PREFIX = 'gtk:connect-'
+
+const getFilteredProps = (
+  { children, ...props }: Props,
+  filter: (key: keyof Props) => boolean,
+) =>
+  Object.keys(props)
+    .filter(filter)
+    .reduce((acc, key) => ({ ...acc, [key]: props[key] }), {})
+
+const getWidgetProps = ({ children, ...props }: Props): Props =>
+  getFilteredProps(props, key => !key.startsWith(GTK_NAMESPACE))
+
+const getConnectProps = ({
+  children,
+  ...props
+}: // It's typed as `any` in `@gi-types/gtk4/index.d.ts`
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+Props): Record<string, (...args: any[]) => any> =>
+  getFilteredProps(props, key => key.startsWith(GTK_NAMESPACE_CONNECT_PREFIX))
 
 const config: HostConfig<
-  LowerWidgetKeys, // type
-  Props,
-  Gtk.Window,
-  Gtk.Widget,
-  never,
-  never,
-  never,
-  Gtk.Widget,
-  null,
-  Record<string, unknown>,
-  never,
-  number,
-  number
+  LowerWidgetKeys, // valid host element type
+  Props, // props
+  Gtk.Window, // container
+  Gtk.Widget, // element instance
+  never, // text instance
+  never, // suspense instance
+  never, // hydratable instance
+  Gtk.Widget, // public instanct
+  null, // host context
+  Record<string, unknown>, // update payload
+  never, // child set
+  number, // timeout handle
+  number // notimeout
 > = {
   supportsMutation: true,
 
@@ -64,18 +73,27 @@ const config: HostConfig<
    *
    * @param type A `camelCased` widget name
    */
-  createInstance(type: LowerWidgetKeys, allProps: Props = {}): Gtk.Widget {
+  createInstance(type: LowerWidgetKeys, props: Props = {}): Gtk.Widget {
     const widgetName = capitalize(type)
 
-    const { children, ...props } = allProps
+    const widgetProps = getWidgetProps(props)
 
     if (!Gtk[widgetName]) {
       throw new TypeError(`Invalid widget: ${widgetName}`)
     }
 
-    const WidgetClass = Gtk[widgetName]
+    const widget = new Gtk[widgetName](widgetProps)
 
-    return new WidgetClass(props)
+    const connectProps = getConnectProps(props)
+
+    for (const key in connectProps) {
+      widget.connect(
+        key.substr(GTK_NAMESPACE_CONNECT_PREFIX.length),
+        connectProps[key],
+      )
+    }
+
+    return widget
   },
 
   createTextInstance() {
@@ -99,7 +117,22 @@ const config: HostConfig<
    * We use this to determine if we need to perform layout modifications.
    */
   finalizeInitialChildren(instance, type, props, rootContainer, hostContext) {
+    if (props[GTK_NAMESPACE_LAYOUT]) {
+      return true
+    }
+
     return false
+  },
+
+  commitMount(instance, type, props, internalHandle) {
+    const parent = instance.get_parent()
+    if (!parent) {
+      return
+    }
+
+    const { [GTK_NAMESPACE_LAYOUT]: layout } = props
+
+    Object.assign(parent.layout_manager.get_layout_child(instance), layout)
   },
 
   /**
@@ -117,19 +150,14 @@ const config: HostConfig<
     const oldKeys = Object.keys(oldProps)
     const newKeys = Object.keys(newProps)
 
-    // const { children, ...oldChildless } = oldProps
-    // const { children: newChildren, ...newChildless } = newProps
-
-    // print('-------- ' + type)
-    // print(JSON.stringify(oldChildless))
-    // print(JSON.stringify(newChildless))
-
     /**
      * Nullify all the old keys first, so we can reset them later with null
      * values if they have become unset
      */
     const nulled = oldKeys
       .filter(key => key !== 'children')
+      // Ignore props that have the same identity between updates
+      .filter(key => oldProps[key] !== newProps[key])
       .reduce((out, key) => {
         return {
           ...out,
@@ -152,8 +180,8 @@ const config: HostConfig<
       return null
     }
 
-    print('Calculated diff for ' + type)
-    print(JSON.stringify(diff))
+    // print('Calculated diff for ' + type)
+    // print(JSON.stringify(diff))
 
     return { ...nulled, ...diff }
   },

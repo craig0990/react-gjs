@@ -1,9 +1,8 @@
 import Gtk from 'gi://Gtk?version=4.0'
 
 /**
- * Provides the core React renderer logic and provides several implementations
- *
- * - {@link BaseReconciler} - the bare minimum
+ * Provides the core React render function and provides several implementations
+ * of a reconciler
  *
  * @module
  */
@@ -11,7 +10,7 @@ import Gtk from 'gi://Gtk?version=4.0'
 import Reconciler from 'react-reconciler'
 
 import CoreReconciler from './reconciler/core'
-import RenderlessChildrenReconciler from './reconciler/renderless'
+import GtkPropsReconciler from './reconciler/gtk-props'
 
 /**
  * Render function using BasicReconciler by default
@@ -19,7 +18,9 @@ import RenderlessChildrenReconciler from './reconciler/renderless'
 const render = (
   element: JSX.Element,
   container: Gtk.Window,
-  // @TODO
+  // @TODO I think we might want a "higher-kinded type", but I'm not sure if that's the right term
+  // @see possibly https://github.com/microsoft/TypeScript/issues/1213
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   options: { reconciler: any } = {
     reconciler: CoreReconciler,
   },
@@ -30,4 +31,4 @@ const render = (
   renderer.updateContainer(element, root)
 }
 
-export { render, CoreReconciler, RenderlessChildrenReconciler }
+export { render, CoreReconciler, GtkPropsReconciler }
