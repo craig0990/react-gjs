@@ -4,53 +4,33 @@ import type { HostConfig } from 'react-reconciler'
 
 import type { LowerWidgetKeys } from '../lib/types'
 
-type Props = Record<string, unknown>
+import { capitalize } from '../lib/helpers'
 
-type PossibleContainer = Gtk.Widget & {
+export type Props = Record<string, unknown>
+
+export type PossibleContainer = Gtk.Widget & {
   remove?: (widget: Gtk.Widget) => void
 }
 
-/**
- * Capitalizes the first letter of a string
- *
- * @param   {string} value The value to capitalize
- *
- * @returns {string}       The capitalized value
- */
-const capitalize = <T extends string>(value: T): Capitalize<T> =>
-  `${value[0].toUpperCase()}${value.slice(1)}` as Capitalize<T>
+export type ReactGJSHostConfig = HostConfig<
+  LowerWidgetKeys, // valid host element type
+  Props, // props
+  Gtk.Window, // container
+  Gtk.Widget, // element instance
+  never, // text instance
+  never, // suspense instance
+  never, // hydratable instance
+  Gtk.Widget, // public instanct
+  null, // host context
+  Record<string, unknown>, // update payload
+  never, // child set
+  number, // timeout handle
+  number // notimeout
+>
 
 const builder = new Gtk.Builder()
 
-// Type,
-// Props,
-// Container,
-// Instance,
-// TextInstance,
-// SuspenseInstance,
-// HydratableInstance,
-// PublicInstance,
-// HostContext,
-// UpdatePayload,
-// ChildSet,
-// TimeoutHandle,
-// NoTimeout
-
-const config: HostConfig<
-  LowerWidgetKeys, // type
-  Props,
-  Gtk.Window,
-  Gtk.Widget,
-  never,
-  never,
-  never,
-  Gtk.Widget,
-  null,
-  Record<string, unknown>,
-  never,
-  number,
-  number
-> = {
+const config: ReactGJSHostConfig = {
   supportsMutation: true,
 
   supportsPersistence: false,
@@ -117,19 +97,14 @@ const config: HostConfig<
     const oldKeys = Object.keys(oldProps)
     const newKeys = Object.keys(newProps)
 
-    // const { children, ...oldChildless } = oldProps
-    // const { children: newChildren, ...newChildless } = newProps
-
-    // print('-------- ' + type)
-    // print(JSON.stringify(oldChildless))
-    // print(JSON.stringify(newChildless))
-
     /**
      * Nullify all the old keys first, so we can reset them later with null
      * values if they have become unset
      */
     const nulled = oldKeys
       .filter(key => key !== 'children')
+      // Ignore props that have the same identity between updates
+      .filter(key => oldProps[key] !== newProps[key])
       .reduce((out, key) => {
         return {
           ...out,
@@ -151,9 +126,6 @@ const config: HostConfig<
     if (Object.keys(diff).length === 0) {
       return null
     }
-
-    print('Calculated diff for ' + type)
-    print(JSON.stringify(diff))
 
     return { ...nulled, ...diff }
   },
