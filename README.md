@@ -23,10 +23,9 @@ You can write:
 </box>
 ```
 
-Most of the hard-work is powered a combination of GJS support for ES modules,
-and the `react-reconciler` package. This repository is essentially a collection
-of glue code to connect the reconciler internals to the GTK bindings exposed by
-GJS.
+Most of the hard-work is powered by GJS support for ES modules, and the
+`react-reconciler` package. This repository is essentially a collection of glue
+code to connect the reconciler internals to the GTK bindings exposed by GJS.
 
 ### Again?
 
@@ -34,11 +33,13 @@ I know this has been tried before. The motivator here is:
 
 (It's a fun challenge, obviously, but mainly...)
 
-The recent ES module support in GJS has greatly simplified the need for arcane
-Webpack configuration rules compared to last time I tried this. A Rollup ES6 in
-<-> ES6 out build works so well that it feels fairly intuitive coming from web
-dev land (all we need now is import maps or an opt-in resolver system so I don't
-have to find plugins that emulate the node resolver algorithm 😁)
+- GJS has recently added ES module support
+- "Real" ES modules removed the need for arcance Webpack config compared to the
+  last time I tried this
+- Real ES modules + the Rollup bundler for "ES6 in <--> ES6 out" works so well
+  that it actually feels pretty close to web-dev land
+- Hopefully if a resolver implementation comes soon, we can even remove the
+  Rollup build step
 
 My longer-term hope is that this will work on Linux-powered phones with the
 Phosh shell, but I'm still waiting for my hardware.
@@ -57,6 +58,8 @@ There are two packages, managed as NPM workspaces in `packages/`.
   [React Native JavaScript Environment](https://reactnative.dev/docs/javascript-environment),
   unless they get up-streamed
 
+### Core Reconciler
+
 The `core` package contains a `reconciler/core.ts` implementation, which is
 concerned _only_ with instantiating `<someElement>` (see the
 [React docs](https://reactjs.org/docs/jsx-in-depth.html#user-defined-components-must-be-capitalized))
@@ -72,23 +75,47 @@ stumbling block at the moment is that `Gtk.StackPage` doesn't seem to implement
 it's not the nicest syntax to look at.
 
 Since it uses `react-reconciler`, all the hard work for user-defined class
-components, refs, hooks, state, etc. is managed by the `react-reconciler`
-package itself. We get it for free.
+components, refs, hooks, state, etc. is managed by `react-reconciler` or React
+itself. We get it for free.
 
-Some experimental approaches to mapping the JSX syntax to GTK are also present
-in `reconciler/` as overrides that extend the Core reconciler.
+### GTK Props Reconciler
 
-A very basic `reconciler/renderless.ts` provides some overrides for more
-GTK-like behaviour of supplying child elements that modify their parent (similar
-to the GTK Builder XML approach). This seems to work fairly well for
-`Gtk.LayoutChild` and signal handlers at present, should work for
-`Gtk.CssProvider`, but might fall over with more complex GTK objects.
+The Core Reconciler works, but if you want to use a `LayoutManager`, or connect
+to Signals, you'll need to do so through refs, to get an instance of the
+underlying `Gtk.Widget`.
 
-(Renderless might not be the best name for it)
+The GTK Props Reconciler supports namespaced JSX props for making this a little
+bit simpler.
 
-A previous proof-of-concept had the concept of `x-` props, such as `x-style`,
-`x-layout-child`, and so on. It may be revisited in a reconciler override, or it
-may not - the logic got quite convoluted. It did result in "cleaner" JSX though.
+This doesn't support using/adding an `EventController`, or the more complex
+widget hierarchies like a `Gtk.StackPage` that doesn't quite support buildable
+the way we want, but it's an improvement for very little extra code.
+
+The hope is that "userland" libraries can make use of these primitives, plus
+refs for more complex logic, and wrap them up into easy-to-use packages like
+much of the React ecosystem.
+
+#### `gtk:layout`
+
+The `gtk:layout` prop expects an object, which will be applied to the widget's
+associated `LayoutChild`:
+
+```jsx
+<grid hexpand={true} column-homogeneous={true}>
+  <label label="0,0" gtk:layout={{ column: 0, row: 0 }} />
+  <label label="1,0" gtk:layout={{ column: 1, row: 0 }} />
+  <label label="0,1" gtk:layout={{ column: 0, row: 1 }} />
+  <label label="1,1" gtk:layout={{ column: 1, row: 1 }} />
+</grid>
+```
+
+#### `gtk:connect-${signal}`
+
+Any prop beginning with `gtk:connect-` will be interpreted as a signal handler:
+
+```jsx
+<button label="Click me!" gtk:connect-clicked={() => print('Yay!')} />
+```
 
 ### Sample App
 
