@@ -133,6 +133,9 @@ See also: the "What's Missing" section.
 - `npx tsc --build` build the core packages (add `--watch` for convenience)
 - `cd examples/com.example.react-gjs.Todo && npx rollup -c rollup.config.js` to
   build the example app
+- `cd examples/com.example.react-gjs.Todo && npm start` if you want to try
+  Broadway with live-reload - visit `http://localhost:8080` once the build
+  finishes
 
 The example app reproduces the source directory inside `dist/`, so it's:
 

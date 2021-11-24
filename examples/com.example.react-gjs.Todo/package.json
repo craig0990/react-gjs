@@ -4,6 +4,13 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build": "rollup -c rollup.config.js",
+    "build:watch": "npm run build -- --watch",
+    "broadway": "gtk4-broadwayd",
+    "watch": "nodemon --watch dist/ --exec 'gjs -m dist/examples/com.example.react-gjs.Todo/index.js'",
+    "web": "GDK_BACKEND=broadway,wayland gjs -m dist/examples/com.example.react-gjs.Todo/index.js ",
+    "web:watch": "_GTK_INSPECTOR_DISPLAY=wayland-0 GDK_BACKEND=broadway,wayland npm run watch",
+    "start": "concurrently 'npm:build:watch' 'npm:broadway' 'npm:web:watch'",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -20,6 +27,7 @@
     "@rollup/plugin-replace": "^3.0.0",
     "@rollup/plugin-typescript": "^8.2.5",
     "babel-plugin-bare-import-rewrite": "^2.0.0",
+    "concurrently": "^6.4.0",
     "rollup-plugin-polyfill-node": "^0.7.0"
   }
 }
