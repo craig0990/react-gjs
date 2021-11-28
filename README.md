@@ -150,7 +150,7 @@ So. Much. Stuff. 😅
 
 - Sensible build tooling scripts
 - `EventController`
-- `CssProvider`
+- ~~`CssProvider`~~ basic version working
 - `<lots-more>`
 - Actual polyfills, the polyfill package just stops it crashing on
   `setTimeout is not defined`
@@ -162,8 +162,8 @@ So. Much. Stuff. 😅
 - Sensible memory usage guarantees
 - Meson packaging
 - Tested GResource support when packaged
-- Script for running in broadway with livereload (I have this working elsewhere,
-  need to bring it in)
+- ~~Script for running in broadway with livereload (I have this working elsewhere,
+  need to bring it in)~~ basic version working, would be nice to set `GTK_INSPECTOR_DISPLAY=wayland-0`, but appears to crash
 
 ## Can I help?
 
