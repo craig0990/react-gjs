@@ -11,6 +11,7 @@ import Reconciler from 'react-reconciler'
 
 import CoreReconciler from './reconciler/core'
 import GtkPropsReconciler from './reconciler/gtk-props'
+import StyleSheet from './stylesheet'
 
 /**
  * Render function using BasicReconciler by default
@@ -31,4 +32,4 @@ const render = (
   renderer.updateContainer(element, root)
 }
 
-export { render, CoreReconciler, GtkPropsReconciler }
+export { render, CoreReconciler, GtkPropsReconciler, StyleSheet }

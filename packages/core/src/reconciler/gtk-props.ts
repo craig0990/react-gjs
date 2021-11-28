@@ -3,14 +3,21 @@ import Gtk from 'gi://Gtk?version=4.0'
 import type { LowerWidgetKeys } from '../lib/types'
 
 import Core from './core'
+import { providers as cssProviders } from '../stylesheet'
 
-import type { Props, ReactGJSHostConfig } from './core'
+import type { Props as CoreProps, ReactGJSHostConfig } from './core'
+
+type Props = CoreProps & {
+  'css-classes'?: string[]
+}
 
 import { capitalize } from '../lib/helpers'
 
+const { STYLE_PROVIDER_PRIORITY_APPLICATION } = Gtk
+
 const GTK_NAMESPACE = 'gtk:'
-const GTK_NAMESPACE_LAYOUT = 'gtk:layout'
-const GTK_NAMESPACE_CONNECT_PREFIX = 'gtk:connect-'
+const GTK_NAMESPACE_LAYOUT = `${GTK_NAMESPACE}layout`
+const GTK_NAMESPACE_CONNECT_PREFIX = `${GTK_NAMESPACE}connect-`
 
 const getFilteredProps = (
   { children, ...props }: Props,
@@ -22,6 +29,23 @@ const getFilteredProps = (
 
 const getWidgetProps = ({ children, ...props }: Props): Props =>
   getFilteredProps(props, key => !key.startsWith(GTK_NAMESPACE))
+
+/**
+ * @todo We're currently always adding providers
+ *
+ *   I'm guessing duplicate instances are "handled", but we never remove them,
+ *   even if we can reasonably guess they're useless.
+ */
+const setStyles = (widget: Gtk.Widget, classes: string[]) => {
+  for (const className of classes) {
+    widget
+      .get_style_context()
+      .add_provider(
+        cssProviders.get(className),
+        STYLE_PROVIDER_PRIORITY_APPLICATION,
+      )
+  }
+}
 
 const getConnectProps = ({
   children,
@@ -57,6 +81,10 @@ const config: ReactGJSHostConfig = Object.assign({}, Core, {
       )
     }
 
+    if (props['css-classes']) {
+      setStyles(widget, props['css-classes'])
+    }
+
     return widget
   },
 
@@ -84,6 +112,18 @@ const config: ReactGJSHostConfig = Object.assign({}, Core, {
     const { [GTK_NAMESPACE_LAYOUT]: layout } = props
 
     Object.assign(parent.layout_manager.get_layout_child(instance), layout)
+  },
+
+  commitUpdate(...args) {
+    const [instance, updatePayload] = args
+
+    if (Core.commitUpdate) {
+      Core.commitUpdate(...args)
+    }
+
+    if (updatePayload['css-classes']) {
+      setStyles(instance, updatePayload['css-classes'])
+    }
   },
 } as Partial<ReactGJSHostConfig>)
 

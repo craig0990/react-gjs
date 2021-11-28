@@ -1,6 +1,7 @@
 import Gdk from 'gi://Gdk'
 import Gtk from 'gi://Gtk?version=4.0'
 import React, { useState } from 'react'
+import { StyleSheet } from '@react-gjs/core'
 
 /* @TODO how to make this part of the core lib? */
 declare module 'react' {
@@ -17,6 +18,12 @@ declare module 'react' {
 }
 
 const { BUTTON_PRIMARY, BUTTON_MIDDLE, BUTTON_SECONDARY } = Gdk
+
+const styles = StyleSheet.create({
+  label: {
+    color: 'red'
+  }
+})
 
 export default class App extends React.Component<Record<string, never>, { count: number, visible: boolean, stack: Gtk.Stack | null }> {
 
@@ -96,7 +103,12 @@ export default class App extends React.Component<Record<string, never>, { count:
             <stackSwitcher stack={stack} />
             <stack ref={this.stackRef}>
                 <box orientation={Gtk.Orientation.VERTICAL} ref={this.stackPage1Ref}>
-                    <label label={`Clicked: ${count} times`} halign={Gtk.Align.CENTER} ref={this.countRef} />
+		  <label
+		    label={`Clicked: ${count} times`}
+		    halign={Gtk.Align.CENTER}
+		    ref={this.countRef}
+		    css-classes={visible ? [styles.label] : []}
+		  />
                     <button label="Click me" gtk:connect-clicked={this.onClick.bind(this)} />
                     {visible && (
                         <box>

@@ -22,7 +22,7 @@ export type ReactGJSHostConfig = HostConfig<
   never, // hydratable instance
   Gtk.Widget, // public instanct
   null, // host context
-  Record<string, unknown>, // update payload
+  { 'css-classes'?: string[]; [x: string]: unknown }, // update payload
   never, // child set
   number, // timeout handle
   number // notimeout
